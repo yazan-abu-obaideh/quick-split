@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ParticipantTotal } from '../utils/splitCalculator';
 
 export type { ParticipantTotal };
@@ -8,7 +8,24 @@ interface SplitSummaryProps {
 }
 
 export function SplitSummary({ participants }: SplitSummaryProps) {
+  const [copied, setCopied] = useState(false);
   const grandTotal = participants.reduce((sum, p) => sum + p.total, 0);
+
+  const handleCopy = async () => {
+    const lines = ['Bill Split', `Total: $${grandTotal.toFixed(2)}`];
+    participants.forEach((p) => {
+      lines.push(`${p.name}: $${p.total.toFixed(2)}`);
+    });
+    const text = lines.join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   return (
     <div className="split-summary">
@@ -28,6 +45,9 @@ export function SplitSummary({ participants }: SplitSummaryProps) {
         <span>Total</span>
         <span>${grandTotal.toFixed(2)}</span>
       </div>
+      <button onClick={handleCopy} className="btn btn-secondary btn-full">
+        {copied ? 'Copied!' : 'Copy Summary'}
+      </button>
     </div>
   );
 }

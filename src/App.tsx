@@ -1,42 +1,18 @@
 import React, { useState } from 'react';
 import './App.css';
 import { NavBar } from './components/NavBar';
-import { FileUpload } from './components/FileUpload';
 import { BillDisplay } from './components/BillDisplay';
 import { ManualInput } from './components/ManualInput';
 import { BillSplit } from './components/BillSplit';
 import { SplitSummary, ParticipantTotal } from './components/SplitSummary';
-import { parseBillImage } from './utils/BillParser';
 import { BillItem } from './types';
 
-type Mode = 'select' | 'manual' | 'upload' | 'split' | 'summary';
+type Mode = 'select' | 'manual' | 'review' | 'split' | 'summary';
 
 function App() {
   const [mode, setMode] = useState<Mode>('select');
   const [items, setItems] = useState<BillItem[]>([]);
   const [participantTotals, setParticipantTotals] = useState<ParticipantTotal[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleFileSelect = async (file: File) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await parseBillImage(file);
-      setItems(result.items);
-      setMode('upload');
-
-      if (result.items.length === 0) {
-        setError('No items found in the image. Try a clearer photo.');
-      }
-    } catch (err) {
-      setError('Failed to process image. Please try again.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleManualComplete = (completedItems: BillItem[]) => {
     setItems(completedItems);
@@ -55,7 +31,6 @@ function App() {
     setMode('select');
     setItems([]);
     setParticipantTotals([]);
-    setError(null);
   };
 
   const showNavBack = mode !== 'select';
@@ -71,11 +46,9 @@ function App() {
           <p className="landing-subtitle">Split bills with friends, hassle-free</p>
           <div className="mode-buttons">
             <button onClick={() => setMode('manual')} className="btn btn-primary">
-              Manual Input
+              Enter Bill
             </button>
-            <FileUpload onFileSelect={handleFileSelect} isLoading={isLoading} />
           </div>
-          {error && <p className="error">{error}</p>}
         </div>
       )}
 
@@ -84,7 +57,7 @@ function App() {
           {mode === 'manual' && (
             <ManualInput onComplete={handleManualComplete} onSplit={handleSplit} />
           )}
-          {mode === 'upload' && (
+          {mode === 'review' && (
             <BillDisplay items={items} onSplit={handleSplit} />
           )}
           {mode === 'split' && (
@@ -93,7 +66,6 @@ function App() {
           {mode === 'summary' && (
             <SplitSummary participants={participantTotals} />
           )}
-          {error && <p className="error">{error}</p>}
         </main>
       )}
     </div>
