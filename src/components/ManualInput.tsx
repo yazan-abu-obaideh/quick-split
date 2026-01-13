@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { BillItem } from '../types';
-import { BillDisplay } from './BillDisplay';
+import React, { useState } from "react";
+import { BillItem } from "../types";
+import { BillDisplay } from "./BillDisplay";
 
-type Step = 'entry' | 'tax' | 'complete';
+type Step = "entry" | "tax" | "complete";
 
 interface ItemsPreviewProps {
   items: BillItem[];
@@ -20,24 +20,42 @@ function ItemsPreview({ items, onEditItem, onFinish }: ItemsPreviewProps) {
   return (
     <div className="items-preview-section">
       <div className="items-preview-card">
-        <div className="items-preview-header" onClick={() => setIsExpanded(!isExpanded)}>
+        <div
+          className="items-preview-header"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <span className="items-preview-count">
-            {items.length} item{items.length !== 1 ? 's' : ''} · ${total.toFixed(2)}
+            {items.length} item{items.length !== 1 ? "s" : ""} · $
+            {total.toFixed(2)}
           </span>
-          <span className={`items-preview-chevron ${isExpanded ? 'expanded' : ''}`}>▼</span>
+          <span
+            className={`items-preview-chevron ${isExpanded ? "expanded" : ""}`}
+          >
+            ▼
+          </span>
         </div>
         {isExpanded && (
           <ul className="items-preview-list">
             {items.map((item, index) => (
-              <li key={index} className="items-preview-item" onClick={() => onEditItem(index)}>
+              <li
+                key={index}
+                className="items-preview-item"
+                onClick={() => onEditItem(index)}
+              >
                 <span className="items-preview-item-name">{item.name}</span>
-                <span className="items-preview-item-price">${item.price.toFixed(2)}</span>
+                <span className="items-preview-item-price">
+                  ${item.price.toFixed(2)}
+                </span>
               </li>
             ))}
           </ul>
         )}
       </div>
-      <button type="button" onClick={onFinish} className="btn btn-primary btn-full">
+      <button
+        type="button"
+        onClick={onFinish}
+        className="btn btn-primary btn-full"
+      >
         Finish and Add Tax
       </button>
     </div>
@@ -55,7 +73,16 @@ interface ItemFormProps {
   onEditItem: (index: number) => void;
 }
 
-function ItemForm({ items, editingIndex, initialName = '', initialPrice = '', onSave, onCancel, onFinish, onEditItem }: ItemFormProps) {
+function ItemForm({
+  items,
+  editingIndex,
+  initialName = "",
+  initialPrice = "",
+  onSave,
+  onCancel,
+  onFinish,
+  onEditItem,
+}: ItemFormProps) {
   const [name, setName] = useState(initialName);
   const [price, setPrice] = useState(initialPrice);
 
@@ -74,26 +101,21 @@ function ItemForm({ items, editingIndex, initialName = '', initialPrice = '', on
     const item = getCurrentItem();
     if (item) {
       onSave(item);
-      setName('');
-      setPrice('');
+      setName("");
+      setPrice("");
     }
   };
 
-  const handleFinish = () => {
-    const item = getCurrentItem();
-    onFinish(item);
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSave();
     }
   };
 
   const handleCancelEdit = () => {
-    setName('');
-    setPrice('');
+    setName("");
+    setPrice("");
     onCancel();
   };
 
@@ -103,10 +125,16 @@ function ItemForm({ items, editingIndex, initialName = '', initialPrice = '', on
 
   return (
     <div className="manual-input">
-      <ItemsPreview items={items} onEditItem={onEditItem} onFinish={handleFinishClick} />
+      <ItemsPreview
+        items={items}
+        onEditItem={onEditItem}
+        onFinish={handleFinishClick}
+      />
 
       <div className="form-group">
-        <label htmlFor="item-name" className="form-label">Item Name</label>
+        <label htmlFor="item-name" className="form-label">
+          Item Name
+        </label>
         <input
           id="item-name"
           type="text"
@@ -120,7 +148,9 @@ function ItemForm({ items, editingIndex, initialName = '', initialPrice = '', on
       </div>
 
       <div className="form-group">
-        <label htmlFor="item-price" className="form-label">Price</label>
+        <label htmlFor="item-price" className="form-label">
+          Price
+        </label>
         <input
           id="item-price"
           type="number"
@@ -137,15 +167,27 @@ function ItemForm({ items, editingIndex, initialName = '', initialPrice = '', on
       <div className="form-actions">
         {isEditing ? (
           <>
-            <button type="button" onClick={handleCancelEdit} className="btn btn-ghost">
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="btn btn-ghost"
+            >
               Cancel
             </button>
-            <button type="button" onClick={handleSave} className="btn btn-primary">
+            <button
+              type="button"
+              onClick={handleSave}
+              className="btn btn-primary"
+            >
               Update
             </button>
           </>
         ) : (
-          <button type="button" onClick={handleSave} className="btn btn-primary btn-full">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="btn btn-primary btn-full"
+          >
             Add Item
           </button>
         )}
@@ -166,14 +208,14 @@ interface TaxFormProps {
 }
 
 function TaxForm({ onSubmit, onBack }: TaxFormProps) {
-  const [servicePercent, setServicePercent] = useState('0');
-  const [taxPercent, setTaxPercent] = useState('0');
+  const [servicePercent, setServicePercent] = useState("0");
+  const [taxPercent, setTaxPercent] = useState("0");
   const [additionalTaxes, setAdditionalTaxes] = useState<TaxField[]>([]);
 
   const handleAddTax = () => {
     setAdditionalTaxes((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), label: '', value: '0' },
+      { id: crypto.randomUUID(), label: "", value: "0" },
     ]);
   };
 
@@ -181,7 +223,11 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
     setAdditionalTaxes((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleAdditionalTaxChange = (id: string, field: 'label' | 'value', newValue: string) => {
+  const handleAdditionalTaxChange = (
+    id: string,
+    field: "label" | "value",
+    newValue: string
+  ) => {
     setAdditionalTaxes((prev) =>
       prev.map((t) => (t.id === id ? { ...t, [field]: newValue } : t))
     );
@@ -190,19 +236,25 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
   const handleSubmit = () => {
     const service = parseFloat(servicePercent) || 0;
     const tax = parseFloat(taxPercent) || 0;
-    const additional = additionalTaxes.reduce((sum, t) => sum + (parseFloat(t.value) || 0), 0);
+    const additional = additionalTaxes.reduce(
+      (sum, t) => sum + (parseFloat(t.value) || 0),
+      0
+    );
     const totalPercent = service + tax + additional;
     onSubmit(totalPercent);
   };
 
-  const totalPercent = (parseFloat(servicePercent) || 0) +
+  const totalPercent =
+    (parseFloat(servicePercent) || 0) +
     (parseFloat(taxPercent) || 0) +
     additionalTaxes.reduce((sum, t) => sum + (parseFloat(t.value) || 0), 0);
 
   return (
     <div className="tax-form">
       <div className="form-group">
-        <label htmlFor="service-percent" className="form-label">Service %</label>
+        <label htmlFor="service-percent" className="form-label">
+          Service %
+        </label>
         <input
           id="service-percent"
           type="number"
@@ -216,7 +268,9 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="tax-percent" className="form-label">Tax %</label>
+        <label htmlFor="tax-percent" className="form-label">
+          Tax %
+        </label>
         <input
           id="tax-percent"
           type="number"
@@ -235,7 +289,9 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
             type="text"
             className="form-input tax-label-input"
             value={tax.label}
-            onChange={(e) => handleAdditionalTaxChange(tax.id, 'label', e.target.value)}
+            onChange={(e) =>
+              handleAdditionalTaxChange(tax.id, "label", e.target.value)
+            }
             placeholder="Label (e.g. VAT)"
           />
           <input
@@ -244,7 +300,9 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
             step="0.1"
             min="0"
             value={tax.value}
-            onChange={(e) => handleAdditionalTaxChange(tax.id, 'value', e.target.value)}
+            onChange={(e) =>
+              handleAdditionalTaxChange(tax.id, "value", e.target.value)
+            }
             placeholder="0"
           />
           <button
@@ -257,19 +315,25 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
         </div>
       ))}
 
-      <button type="button" onClick={handleAddTax} className="btn btn-ghost btn-full">
+      <button
+        type="button"
+        onClick={handleAddTax}
+        className="btn btn-ghost btn-full"
+      >
         + Add Another Tax
       </button>
 
-      <div className="tax-total">
-        Total: +{totalPercent.toFixed(1)}%
-      </div>
+      <div className="tax-total">Total: +{totalPercent.toFixed(1)}%</div>
 
       <div className="form-actions">
         <button type="button" onClick={onBack} className="btn btn-ghost">
           Back
         </button>
-        <button type="button" onClick={handleSubmit} className="btn btn-primary">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="btn btn-primary"
+        >
           Apply
         </button>
       </div>
@@ -283,7 +347,7 @@ interface ManualInputProps {
 }
 
 export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
-  const [step, setStep] = useState<Step>('entry');
+  const [step, setStep] = useState<Step>("entry");
   const [items, setItems] = useState<BillItem[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
@@ -305,7 +369,7 @@ export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
   };
 
   const handleBackFromTax = () => {
-    setStep('entry');
+    setStep("entry");
   };
 
   const handleFinish = (item: BillItem | null) => {
@@ -314,22 +378,23 @@ export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
       return;
     }
     setItems(finalItems);
-    setStep('tax');
+    setStep("tax");
   };
 
   const handleTaxSubmit = (taxPercent: number) => {
-    const finalItems = taxPercent > 0
-      ? items.map((item) => ({
-          ...item,
-          price: item.price * (1 + taxPercent / 100),
-        }))
-      : items;
+    const finalItems =
+      taxPercent > 0
+        ? items.map((item) => ({
+            ...item,
+            price: item.price * (1 + taxPercent / 100),
+          }))
+        : items;
     setItems(finalItems);
-    setStep('complete');
+    setStep("complete");
     onComplete(finalItems);
   };
 
-  if (step === 'complete') {
+  if (step === "complete") {
     return <BillDisplay items={items} onSplit={onSplit} />;
   }
 
@@ -337,20 +402,22 @@ export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
 
   return (
     <>
-      {step === 'entry' && (
+      {step === "entry" && (
         <ItemForm
-          key={editingIndex ?? 'new'}
+          key={editingIndex ?? "new"}
           items={items}
           editingIndex={editingIndex}
-          initialName={editingItem?.name ?? ''}
-          initialPrice={editingItem?.price.toString() ?? ''}
+          initialName={editingItem?.name ?? ""}
+          initialPrice={editingItem?.price.toString() ?? ""}
           onSave={handleSave}
           onCancel={handleCancelEdit}
           onFinish={handleFinish}
           onEditItem={handleEditItem}
         />
       )}
-      {step === 'tax' && <TaxForm onSubmit={handleTaxSubmit} onBack={handleBackFromTax} />}
+      {step === "tax" && (
+        <TaxForm onSubmit={handleTaxSubmit} onBack={handleBackFromTax} />
+      )}
     </>
   );
 }
