@@ -94,7 +94,7 @@ function ParticipantCard({
       <div className="participant-header" onClick={onToggle}>
         <div className="participant-info">
           <span className={`participant-expand ${isExpanded ? 'expanded' : ''}`}>
-            ▼
+            {'>'}
           </span>
           <span className="participant-name">{participantName}</span>
         </div>
@@ -180,18 +180,20 @@ function ParticipantCard({
   );
 }
 
-interface BillSplitProps {
+interface ParticipantsTabProps {
   bill: Bill;
   onBillChange: (bill: Bill) => void;
-  onFinish: () => void;
 }
 
-export function BillSplit({ bill, onBillChange, onFinish }: BillSplitProps) {
+export function ParticipantsTab({ bill, onBillChange }: ParticipantsTabProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [newName, setNewName] = useState('');
 
   const items = bill.items;
   const participantTotals = useMemo(() => bill.participantTotals, [bill]);
+  const grandTotal = bill.grandTotal;
+  const assignedTotal = bill.assignedTotal;
+  const isFullyAssigned = bill.isFullyAssigned;
 
   const handleAddParticipant = () => {
     const trimmedName = newName.trim();
@@ -236,18 +238,13 @@ export function BillSplit({ bill, onBillChange, onFinish }: BillSplitProps) {
     }
   };
 
-  const handleFinish = () => {
-    onFinish();
-  };
-
   return (
-    <div className="bill-split">
+    <div className="tab-content">
       <div className="split-header">
-        <h2 className="split-title">Split Bill</h2>
         <div className="split-totals">
-          <span>Total: ${bill.grandTotal.toFixed(2)}</span>
-          <span className={bill.isFullyAssigned ? 'split-totals-assigned' : 'split-totals-unassigned'}>
-            Assigned: ${bill.assignedTotal.toFixed(2)}
+          <span>Total: ${grandTotal.toFixed(2)}</span>
+          <span className={isFullyAssigned ? 'split-totals-assigned' : 'split-totals-unassigned'}>
+            Assigned: ${assignedTotal.toFixed(2)}
           </span>
         </div>
       </div>
@@ -290,15 +287,9 @@ export function BillSplit({ bill, onBillChange, onFinish }: BillSplitProps) {
 
       {bill.participants.length === 0 && (
         <div className="empty-state">
-          <div className="empty-state-icon">👥</div>
+          <div className="empty-state-icon">+</div>
           <p className="empty-state-text">Add participants to start splitting</p>
         </div>
-      )}
-
-      {bill.isFullyAssigned && (
-        <button onClick={handleFinish} className="btn btn-primary btn-full">
-          Finish
-        </button>
       )}
     </div>
   );

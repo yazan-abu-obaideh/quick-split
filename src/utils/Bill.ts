@@ -81,6 +81,10 @@ export class Bill {
     return this.taxes.reduce((sum, t) => sum + t.percent, 0);
   }
 
+  get subtotal(): number {
+    return this.rawItems.reduce((sum, item) => sum + item.price, 0);
+  }
+
   get items(): BillItem[] {
     const multiplier = 1 + this.totalTaxPercent / 100;
     return this.rawItems.map((item) => ({
@@ -203,6 +207,13 @@ export class Bill {
   }
 
   // Mutation methods - return new Bill instances
+
+  setName(name: string): Bill {
+    return new Bill({
+      ...this.toData(),
+      name,
+    });
+  }
 
   addItem(item: BillItem): Bill {
     return new Bill({

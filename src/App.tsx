@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { NavBar } from './components/NavBar';
-import { ManualInput } from './components/ManualInput';
-import { BillSplit } from './components/BillSplit';
-import { SplitSummary } from './components/SplitSummary';
 import { MyBills } from './components/MyBills';
+import { BillEditor } from './components/BillEditor';
 import { Bill } from './types';
 import { getBillStorageService } from './utils/billStorage';
 
-type Mode = 'select' | 'bills' | 'manual' | 'split' | 'summary';
+type Mode = 'select' | 'bills' | 'editor';
 
 function App() {
   const [mode, setMode] = useState<Mode>('select');
@@ -28,27 +26,15 @@ function App() {
     }
   }, [currentBill]);
 
-  const participantTotals = useMemo(
-    () => currentBill?.participantTotals ?? [],
-    [currentBill]
-  );
-
   const handleNewBill = useCallback(() => {
     const bill = Bill.create();
     setCurrentBill(bill);
-    setMode('manual');
+    setMode('editor');
   }, []);
 
   const handleSelectBill = useCallback((bill: Bill) => {
     setCurrentBill(bill);
-    const status = bill.status;
-    if (status === 'completed') {
-      setMode('summary');
-    } else if (status === 'splitting') {
-      setMode('split');
-    } else {
-      setMode('manual');
-    }
+    setMode('editor');
   }, []);
 
   const handleDeleteBill = useCallback((billId: string) => {
@@ -64,29 +50,25 @@ function App() {
     setCurrentBill(bill);
   }, []);
 
-  const handleSplit = useCallback(() => {
-    setMode('split');
-  }, []);
-
-  const handleSplitFinish = useCallback(() => {
-    setMode('summary');
-  }, []);
-
-  const handleBackToEntry = useCallback(() => {
-    setMode('manual');
-  }, []);
-
   const handleBack = useCallback(() => {
     storageRef.current.setCurrentBillId(null);
     setCurrentBill(null);
     setMode('select');
   }, []);
 
-  const showNavBack = mode !== 'select';
+  const getBackHandler = () => {
+    switch (mode) {
+      case 'editor':
+      case 'bills':
+        return handleBack;
+      default:
+        return undefined;
+    }
+  };
 
   return (
     <div className="App">
-      <NavBar onBack={showNavBack ? (mode === 'split' ? handleBackToEntry : handleBack) : undefined} />
+      <NavBar onBack={getBackHandler()} />
 
       {mode === 'select' && (
         <div className="landing">
@@ -95,7 +77,7 @@ function App() {
           <p className="landing-subtitle">Split bills with friends, hassle-free</p>
           <div className="mode-buttons">
             <button onClick={handleNewBill} className="btn btn-primary">
-              Enter Bill
+              New Bill
             </button>
             <button onClick={() => setMode('bills')} className="btn btn-secondary">
               My Bills{bills.length > 0 && ` (${bills.length})`}
@@ -115,25 +97,12 @@ function App() {
         </main>
       )}
 
-      {mode !== 'select' && mode !== 'bills' && currentBill && (
+      {mode === 'editor' && currentBill && (
         <main className="main-content">
-          {mode === 'manual' && (
-            <ManualInput
-              bill={currentBill}
-              onBillChange={handleBillChange}
-              onSplit={handleSplit}
-            />
-          )}
-          {mode === 'split' && (
-            <BillSplit
-              bill={currentBill}
-              onBillChange={handleBillChange}
-              onFinish={handleSplitFinish}
-            />
-          )}
-          {mode === 'summary' && (
-            <SplitSummary participants={participantTotals} />
-          )}
+          <BillEditor
+            bill={currentBill}
+            onBillChange={handleBillChange}
+          />
         </main>
       )}
     </div>

@@ -8,8 +8,8 @@ test('renders app title', () => {
   expect(titleElements.length).toBeGreaterThan(0);
 });
 
-test('renders enter bill button', () => {
+test('renders new bill button', () => {
   render(<App />);
-  const button = screen.getByText(/Enter Bill/i);
+  const button = screen.getByText(/New Bill/i);
   expect(button).toBeInTheDocument();
 });
