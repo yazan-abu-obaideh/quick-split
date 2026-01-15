@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BillItem } from "../types";
+import { Bill, BillItem, TaxEntry } from "../types";
 import { BillDisplay } from "./BillDisplay";
 
 type Step = "entry" | "tax" | "complete";
@@ -69,7 +69,7 @@ interface ItemFormProps {
   initialPrice?: string;
   onSave: (item: BillItem) => void;
   onCancel: () => void;
-  onFinish: (item: BillItem | null) => void;
+  onFinish: () => void;
   onEditItem: (index: number) => void;
 }
 
@@ -119,16 +119,12 @@ function ItemForm({
     onCancel();
   };
 
-  const handleFinishClick = () => {
-    onFinish(null);
-  };
-
   return (
     <div className="manual-input">
       <ItemsPreview
         items={items}
         onEditItem={onEditItem}
-        onFinish={handleFinishClick}
+        onFinish={onFinish}
       />
 
       <div className="form-group">
@@ -196,21 +192,24 @@ function ItemForm({
   );
 }
 
-interface TaxField {
-  id: string;
-  label: string;
-  value: string;
-}
-
 interface TaxFormProps {
-  onSubmit: (taxPercent: number) => void;
+  onSubmit: (taxes: TaxEntry[]) => void;
   onBack: () => void;
+  initialTaxes: readonly TaxEntry[];
 }
 
-function TaxForm({ onSubmit, onBack }: TaxFormProps) {
-  const [servicePercent, setServicePercent] = useState("0");
-  const [taxPercent, setTaxPercent] = useState("0");
-  const [additionalTaxes, setAdditionalTaxes] = useState<TaxField[]>([]);
+function TaxForm({ onSubmit, onBack, initialTaxes }: TaxFormProps) {
+  const [servicePercent, setServicePercent] = useState(
+    initialTaxes.find(t => t.label === 'Service')?.percent.toString() ?? "0"
+  );
+  const [taxPercent, setTaxPercent] = useState(
+    initialTaxes.find(t => t.label === 'Tax')?.percent.toString() ?? "0"
+  );
+  const [additionalTaxes, setAdditionalTaxes] = useState<{ id: string; label: string; value: string }[]>(
+    initialTaxes
+      .filter(t => t.label !== 'Service' && t.label !== 'Tax')
+      .map(t => ({ id: t.id, label: t.label, value: t.percent.toString() }))
+  );
 
   const handleAddTax = () => {
     setAdditionalTaxes((prev) => [
@@ -234,14 +233,26 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
   };
 
   const handleSubmit = () => {
+    const taxes: TaxEntry[] = [];
+
     const service = parseFloat(servicePercent) || 0;
+    if (service > 0) {
+      taxes.push({ id: 'service', label: 'Service', percent: service });
+    }
+
     const tax = parseFloat(taxPercent) || 0;
-    const additional = additionalTaxes.reduce(
-      (sum, t) => sum + (parseFloat(t.value) || 0),
-      0
-    );
-    const totalPercent = service + tax + additional;
-    onSubmit(totalPercent);
+    if (tax > 0) {
+      taxes.push({ id: 'tax', label: 'Tax', percent: tax });
+    }
+
+    additionalTaxes.forEach(t => {
+      const percent = parseFloat(t.value) || 0;
+      if (percent > 0) {
+        taxes.push({ id: t.id, label: t.label || 'Other', percent });
+      }
+    });
+
+    onSubmit(taxes);
   };
 
   const totalPercent =
@@ -342,21 +353,24 @@ function TaxForm({ onSubmit, onBack }: TaxFormProps) {
 }
 
 interface ManualInputProps {
-  onComplete: (items: BillItem[]) => void;
+  bill: Bill;
+  onBillChange: (bill: Bill) => void;
   onSplit: () => void;
 }
 
-export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
-  const [step, setStep] = useState<Step>("entry");
-  const [items, setItems] = useState<BillItem[]>([]);
+export function ManualInput({ bill, onBillChange, onSplit }: ManualInputProps) {
+  const hasTaxes = bill.taxes.length > 0;
+  const [step, setStep] = useState<Step>(
+    bill.rawItems.length > 0 && hasTaxes ? "complete" : "entry"
+  );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const handleSave = (item: BillItem) => {
     if (editingIndex !== null) {
-      setItems((prev) => prev.map((it, i) => (i === editingIndex ? item : it)));
+      onBillChange(bill.updateItem(editingIndex, item));
       setEditingIndex(null);
     } else {
-      setItems((prev) => [...prev, item]);
+      onBillChange(bill.addItem(item));
     }
   };
 
@@ -372,40 +386,30 @@ export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
     setStep("entry");
   };
 
-  const handleFinish = (item: BillItem | null) => {
-    const finalItems = item ? [...items, item] : items;
-    if (finalItems.length === 0) {
+  const handleFinish = () => {
+    if (bill.rawItems.length === 0) {
       return;
     }
-    setItems(finalItems);
     setStep("tax");
   };
 
-  const handleTaxSubmit = (taxPercent: number) => {
-    const finalItems =
-      taxPercent > 0
-        ? items.map((item) => ({
-            ...item,
-            price: item.price * (1 + taxPercent / 100),
-          }))
-        : items;
-    setItems(finalItems);
+  const handleTaxSubmit = (taxes: TaxEntry[]) => {
+    onBillChange(bill.setTaxes(taxes));
     setStep("complete");
-    onComplete(finalItems);
   };
 
   if (step === "complete") {
-    return <BillDisplay items={items} onSplit={onSplit} />;
+    return <BillDisplay items={bill.items} onSplit={onSplit} />;
   }
 
-  const editingItem = editingIndex !== null ? items[editingIndex] : null;
+  const editingItem = editingIndex !== null ? bill.rawItems[editingIndex] : null;
 
   return (
     <>
       {step === "entry" && (
         <ItemForm
           key={editingIndex ?? "new"}
-          items={items}
+          items={[...bill.rawItems]}
           editingIndex={editingIndex}
           initialName={editingItem?.name ?? ""}
           initialPrice={editingItem?.price.toString() ?? ""}
@@ -416,7 +420,11 @@ export function ManualInput({ onComplete, onSplit }: ManualInputProps) {
         />
       )}
       {step === "tax" && (
-        <TaxForm onSubmit={handleTaxSubmit} onBack={handleBackFromTax} />
+        <TaxForm
+          onSubmit={handleTaxSubmit}
+          onBack={handleBackFromTax}
+          initialTaxes={bill.taxes}
+        />
       )}
     </>
   );

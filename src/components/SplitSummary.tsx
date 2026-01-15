@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { ParticipantTotal } from '../utils/splitCalculator';
-
-export type { ParticipantTotal };
+import { ParticipantTotal } from '../types';
 
 interface SplitSummaryProps {
   participants: ParticipantTotal[];
@@ -34,8 +32,8 @@ export function SplitSummary({ participants }: SplitSummaryProps) {
         <p className="summary-subtitle">Everyone's share</p>
       </div>
       <ul className="summary-list">
-        {participants.map((participant, index) => (
-          <li key={index} className="summary-item">
+        {participants.map((participant) => (
+          <li key={participant.id} className="summary-item">
             <span className="summary-name">{participant.name}</span>
             <span className="summary-total">${participant.total.toFixed(2)}</span>
           </li>
