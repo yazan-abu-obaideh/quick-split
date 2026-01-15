@@ -584,7 +584,7 @@ body {
 }
 
 .participant-items {
-  padding: 0 16px 16px;
+  padding: 12px 16px 16px;
   border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -595,12 +595,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: 14px 12px;
+  border-radius: var(--radius-sm);
+  margin: 0 -4px;
 }
 
-.participant-item-row:last-of-type {
-  border-bottom: none;
+.participant-item-row:hover {
+  background: var(--color-surface-hover);
 }
 
 .participant-item {

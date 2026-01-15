@@ -93,9 +93,6 @@ function ParticipantCard({
     <div className="participant-card">
       <div className="participant-header" onClick={onToggle}>
         <div className="participant-info">
-          <span className={`participant-expand ${isExpanded ? 'expanded' : ''}`}>
-            {'>'}
-          </span>
           <span className="participant-name">{participantName}</span>
         </div>
         <span className="participant-total">${participantTotal.toFixed(2)}</span>
@@ -111,7 +108,7 @@ function ParticipantCard({
             const isUnderAssigned = !itemInfo.isFullyAssigned && !itemInfo.isOverAssigned;
             const isUnassigned = itemInfo.isUnassigned;
             const showOverAllocationError = isSelected && selection?.percentage !== undefined && isOverAllocated;
-            const showUnderAssignedWarning = isLastParticipant && isUnderAssigned;
+            const showUnderAssignedWarning = isUnderAssigned;
 
             let rowClass = 'participant-item-row';
             if (showOverAllocationError) rowClass += ' item-over-allocated';
